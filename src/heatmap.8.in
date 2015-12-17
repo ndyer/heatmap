@@ -1,0 +1,91 @@
+.\" Copyright (c) 2014 Zodiac Inflight Innovations
+.\"
+.\" This program is free software; you can redistribute it and/or modify
+.\" it under the terms of the GNU General Public License as published by
+.\" the Free Software Foundation; either version 2 of the License, or
+.\" (at your option) any later version.
+.\"
+.\" This program is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public License along
+.\" with this program; if not, write to the Free Software Foundation, Inc.,
+.\" 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+.\"
+.Dd August 28, 2015
+.Dt HEATMAP 8
+.Os
+.Sh NAME
+.Nm heatmap
+.Nd ANSI rendering of raw touchscreen heatmap data
+.Sh SYNOPSIS
+.Nm
+.Op Fl d | Fl -debug
+.Op Fl v | Fl -version
+.Op Fl D Ar debug
+.Op Fl p | Fl -path Ar path
+.Op Fl r | Fl -rate Ar rate
+.Op Fl w | Fl -width Ar width
+.Op Fl m | Fl -min Ar min
+.Op Fl M | Fl -max Ar max
+.Op Fl V | Fl -values
+.Op Fl g | Fl -gray
+.Sh DESCRIPTION
+.Nm
+renders a heatmap from an Atmel MaxTouch touchscreen. By default, the deltas
+are read from a file given with the
+.Fl p
+flag.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl p | Fl -path Ar path
+Specify the path to the data file. This file is encoded with 2-byte
+signed integers showing the values on the surface. Any file can be
+used as a source.
+.It Fl f | Fl -debugfs Ar number
+Specify which, of the found debugfs paths, should be used. The default
+debugfs path is always the first found, the -s flag shows a list of the found
+debugfs sources.
+.It Fl r | Fl -rate Ar rate
+Specify the refresh rate in updates per second. When set to 0,
+.Nm
+will update as fast as possible. The default value is
+@HM_DEFAULT_RATE@.
+.It Fl w | Fl -width Ar width
+Specify the width of the touchscreen in the number of cells. The
+default value is @HM_DEFAULT_WIDTH@.
+.It Fl m | Fl -min Ar value
+Specify the minimum expected heatmap value. Use
+.Li auto
+to automatically use the maximum known value. The default value is
+@HM_DEFAULT_MIN@.
+.It Fl M | Fl -max Ar value
+Specify the maximum expected heatmap value. Use
+.Li auto
+to automatically use the maximum known value. The default value is
+@HM_DEFAULT_MAX@.
+.It Fl V | Fl -values
+Display retrieved heatmap values on the heatmap.
+.It Fl s | Fl -scan
+Display detected debugfs data sources.
+.It Fl g | Fl -gray
+Use grayscale instead of colormap. This is automatic if the terminal
+doesn't support custom colors.
+.It Fl d | Fl -debug
+Be more verbose.
+This option can be repeated twice to enable debug mode.
+Debug messages can then be filtered with the
+.Fl D
+flag.
+.It Fl D Ar debug
+This option allows the user to filter out debugging information by
+specifying allowed tokens.
+This option can be repeated several times to allow several tokens.
+This option must be combined with the
+.Fl d
+flag to have some effect.
+Only debugging logs can be filtered.
+.El
