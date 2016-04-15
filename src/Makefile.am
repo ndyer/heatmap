@@ -7,6 +7,6 @@ dist_man_MANS = heatmap.8
 
 heatmap_SOURCES  = log.c log.h \
 	heatmap.h heatmap.c \
-	retrieve.c display.c debugfs.c
+	display.c debug_v4l.c
 heatmap_CFLAGS   = $(AM_CFLAGS)
 heatmap_LDFLAGS  = $(AM_LDFLAGS) @CURSES_LIB@

@@ -26,6 +26,7 @@
 #include <limits.h>
 #include <signal.h>
 #include <time.h>
+#include <stdint.h>
 
 extern const char *__progname;
 
@@ -36,15 +37,15 @@ usage(void)
             __progname);
     fprintf(stderr, "Version: %s\n", PACKAGE_STRING);
     fprintf(stderr, "\n");
-    fprintf(stderr, "-d, --debug      Be more verbose.\n");
-    fprintf(stderr, "-f n, --dbgfs n  debugfs device number to use.\n");
-    fprintf(stderr, "-p p, --path p   path to deltas file.\n");
+    fprintf(stderr, "-D, --debug      Be more verbose.\n");
+    fprintf(stderr, "-d n, --devno    v4l device number.\n");
+    fprintf(stderr, "-i n, --input    v4l input number.\n");
     fprintf(stderr, "-r R, --rate R   Refresh rate (default: %s).\n", HM_DEFAULT_RATE);
     fprintf(stderr, "-w W, --width W  Touchscreen width (default: %s).\n", HM_DEFAULT_WIDTH);
     fprintf(stderr, "-m M, --min M    Minimum heatmap value (default: %s).\n", HM_DEFAULT_MIN);
     fprintf(stderr, "-M M, --max M    Maximum heatmap value (default: %s).\n", HM_DEFAULT_MAX);
     fprintf(stderr, "-V, --values     Display heatmap values.\n");
-    fprintf(stderr, "-s, --scan       Display scan results showing debugfs data sources.\n");
+    fprintf(stderr, "-s, --scan-v4l   Display scan results showing debug v4l devices.\n");
     fprintf(stderr, "-g, --gray       Use grayscale.\n");
     fprintf(stderr, "\n");
     fprintf(stderr, "see manual page " PACKAGE "(8) for more information\n");
@@ -101,32 +102,27 @@ main(int argc, char *argv[])
 {
     int debug = 1;
     int dev = 0;
+    int input = 0;
     int ch;
 
-    struct hm_cfg cfgs[MAX_DEBUGFS_CONFIGS];
-
-    int devs = debugfs_get_config(cfgs);
-
     struct hm_cfg cfg = {
-        .path = cfgs[dev].path,
         .rate = atoi(HM_DEFAULT_RATE),
-        .width = cfgs[dev].width,
+        .width = 0,
         .min = hm_min_value(HM_DEFAULT_MIN),
         .max = hm_max_value(HM_DEFAULT_MAX)
     };
 
     static struct option long_options[] = {
-        { "debug", no_argument, 0, 'd' },
+        { "debug", no_argument, 0, 'D' },
         { "help",  no_argument, 0, 'h' },
         { "version", no_argument, 0, 'v' },
-        { "dbgfs", required_argument, 0, 'f' },
-        { "path", required_argument, 0, 'p' },
+        { "devno", required_argument, 0, 'd' },
         { "rate", required_argument, 0, 'r' },
         { "width", required_argument, 0, 'w' },
         { "min", required_argument, 0, 'm' },
         { "max", required_argument, 0, 'M' },
         { "values", no_argument, 0, 'V' },
-        { "scan", no_argument, 0, 's' },
+        { "scan-v4l", no_argument, 0, 's' },
         { "gray", no_argument, 0, 'g' },
         { 0 }
     };
@@ -134,7 +130,7 @@ main(int argc, char *argv[])
     int index_option;
     unsigned long uval;
     char *end;
-    while ((ch = getopt_long(argc, argv, "ghvdD:f:p:r:w:m:M:Vs",
+    while ((ch = getopt_long(argc, argv, "ghvD:i:d:p:r:w:m:M:Vs",
                              long_options, &index_option)) != -1) {
         switch (ch) {
         case 'h':
@@ -145,23 +141,15 @@ main(int argc, char *argv[])
             fprintf(stdout, "%s\n", PACKAGE_VERSION);
             exit(0);
             break;
-        case 'd':
+        case 'D':
             debug++;
             break;
-        case 'D':
-            log_accept(optarg);
-            break;
-        case 'f':
+        case 'd':
             dev = atoi(optarg);
-            cfg.path = cfgs[dev].path;
-            cfg.width = cfgs[dev].width;
+            snprintf(cfg.path, sizeof(cfg.path), "/dev/video%d", dev);
             break;
-        case 'p':
-            cfg.path = optarg;
-            cfg.width = atoi(HM_DEFAULT_WIDTH);
-
-            if (devs == 0)
-                devs = 1;
+        case 'i':
+            input = atoi(optarg);
             break;
         case 'r':
             errno = 0;
@@ -197,7 +185,7 @@ main(int argc, char *argv[])
             cfg.values = true;
             break;
         case 's':
-            print_debugfs_devices(cfgs, devs);
+            print_debug_v4l_devices();
             exit(0);
             break;
         case 'g':
@@ -213,9 +201,7 @@ main(int argc, char *argv[])
     cfg.auto_max = (cfg.max == INT_MIN);
 
     log_init(debug, __progname);
-
-    if (devs == 0)
-        fatal("heatmap", "No data path");
+    hm_v4l_init(&cfg, input);
 
     /* Setup signals */
     struct sigaction actterm;
@@ -246,9 +232,9 @@ main(int argc, char *argv[])
             nanosleep(&ts, NULL);
         }
 
-        int *data;
         size_t len;
-        len = hm_retrieve_data(&cfg, &data);
+        len = hm_v4l_get_frame(&cfg);
+
         if (len == 0) {
             if (err++ > 5) {
                 endwin();
@@ -263,11 +249,20 @@ main(int argc, char *argv[])
             refresh();
             clear();
         }
-        hm_display_data(&cfg, data, len);
-        free(data);
+
+        for (size_t i = 0; i < len; i++) {
+          int blob = hm_v4l_get_value(&cfg, i);
+          if (cfg.auto_min && blob < cfg.min) cfg.min = blob;
+          if (cfg.auto_max && blob > cfg.max) cfg.max = blob;
+        }
+
+        hm_display_data(&cfg, len);
     } while (!stop);
 
     endwin();
 
+    hm_v4l_close(&cfg);
+
     return EXIT_SUCCESS;
 }
+

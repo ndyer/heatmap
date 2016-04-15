@@ -24,7 +24,7 @@
 #endif
 
 #include "log.h"
-#include "debugfs.h"
+#include "debug_v4l.h"
 
 #include <stdlib.h>
 
@@ -44,6 +44,6 @@
 
 size_t hm_retrieve_data(struct hm_cfg *, int **);
 void hm_display_init(struct hm_cfg *);
-void hm_display_data(struct hm_cfg *, int *, size_t);
+void hm_display_data(struct hm_cfg *, size_t);
 
 #endif

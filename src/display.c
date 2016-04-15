@@ -87,7 +87,7 @@ hm_display_init(struct hm_cfg *cfg)
 }
 
 void
-hm_display_data(struct hm_cfg *cfg, int *data, size_t len)
+hm_display_data(struct hm_cfg *cfg, size_t len)
 {
     size_t columns = cfg->width;   /* Number of columns */
     size_t lines = len / columns; /* Number of lines */
@@ -112,7 +112,9 @@ hm_display_data(struct hm_cfg *cfg, int *data, size_t len)
             max = MAXGRAY;
         else
             max = MAXCOLOR;
-        ssize_t gray = (data[i] - cfg->min) * max / (cfg->max - cfg->min);
+
+        int val = hm_v4l_get_value(cfg, i);
+        ssize_t gray = (val - cfg->min) * max / (cfg->max - cfg->min);
         if (gray >= max) gray = max - 1;
         if (gray < 0) gray = 0;
         attrset(COLOR_PAIR(gray));
@@ -120,11 +122,12 @@ hm_display_data(struct hm_cfg *cfg, int *data, size_t len)
             move(offsety + (i / cfg->width) * cheight + j,
                  offsetx + (i % cfg->width) * cwidth);
             if (cfg->values && j == cheight / 2 && cwidth > 3) {
-                printw("% *d", cwidth, data[i]);
+                printw("% *d", cwidth, val);
             } else {
                 printw("% *s", cwidth, " ");
             }
         }
     }
+
     refresh();
 }
