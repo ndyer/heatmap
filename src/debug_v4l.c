@@ -31,8 +31,8 @@
 #include <stdint.h>
 #include <errno.h>
 
-#ifndef V4L2_PIX_FMT_MXT_I16
-#define V4L2_PIX_FMT_MXT_I16   v4l2_fourcc('M', 'X', '1', '6') /* atmel_mxt_ts signed 16-bit */
+#ifndef V4L2_PIX_FMT_YS16
+#define V4L2_PIX_FMT_YS16    v4l2_fourcc('Y', 'S', '1', '6') /* signed 16-bit Greyscale */
 #endif
 
 #define DEBUG_V4L_ROOT_DIR		"/dev"
@@ -271,7 +271,7 @@ hm_v4l_get_value(struct hm_cfg *cfg, size_t index)
             val = uiPtr[index];
             break;
 
-        case V4L2_PIX_FMT_MXT_I16:
+        case V4L2_PIX_FMT_YS16:
             iPtr = cfg->buffer;
             val = iPtr[index];
             break;
