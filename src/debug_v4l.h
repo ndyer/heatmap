@@ -30,10 +30,12 @@ struct hm_cfg {
   struct v4l2_format fmt;    /* v4l2 device format */
   void *buffer; /* Buffer used to transfer data */
   struct v4l2_buffer bufferinfo; /* v4l2 buffer info */
+  struct v4l2_capability cap;   /* v4l2 capability */
+  struct v4l2_input in;   /* v4l2 input */
   char path[PATH_MAX];		/* Path to data file */
   unsigned int rate;	/* Refresh rate */
-  unsigned int width;	/* Touchscreen width */
-  unsigned int height;	/* Touchscreen height */
+  int width;	/* Touchscreen width */
+  int height;	/* Touchscreen height */
   uint32_t pixfmt; /* Pixel format */
   int min;		/* Minimal pressure value */
   int max;		/* Maximumal pressure value */

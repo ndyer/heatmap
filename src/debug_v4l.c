@@ -76,25 +76,19 @@ debug_v4l_set_dev_input(int fd, int index)
 }
 
 static void
-debug_v4l_print_dev_info(char *path)
+debug_v4l_get_cap(int fd, struct v4l2_capability *cap)
 {
-  int fd;
-  struct v4l2_capability cap;
   struct v4l2_input in;
 
-  in.index = 0;
-
-  fd = debug_v4l_open_device(path);
-  if (!fd)
-    return;
-
-  int ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);
+  int ret = ioctl(fd, VIDIOC_QUERYCAP, cap);
   if (ret == -1)
     return;
 
-  printf("  Driver:\t%s\n", cap.driver);
-  printf("  Card:\t\t%s\n", cap.card);
-  printf("  Bus Info:\t%s\n", cap.bus_info);
+  printf("  Driver:\t%s\n", cap->driver);
+  printf("  Card:\t\t%s\n", cap->card);
+  printf("  Bus Info:\t%s\n", cap->bus_info);
+
+  in.index = 0;
 
   while (ioctl(fd, VIDIOC_ENUMINPUT, &in) == 0) {
     /* Print input instance */
@@ -103,6 +97,19 @@ debug_v4l_print_dev_info(char *path)
   }
 
   printf("\n");
+}
+
+static void
+debug_v4l_print_dev_info(char *path)
+{
+  int fd;
+  struct v4l2_capability cap;
+
+  fd = debug_v4l_open_device(path);
+  if (!fd)
+    return;
+
+  debug_v4l_get_cap(fd, &cap);
 
   close(fd);
 }
@@ -156,10 +163,19 @@ hm_v4l_init(struct hm_cfg *cfg, int input)
     return;
   }
 
+  debug_v4l_get_cap(cfg->fd, &cfg->cap);
+
   /* set input */
   ret = debug_v4l_set_dev_input(cfg->fd, input);
   if (ret) {
     fprintf(stderr, "input\n");
+    return;
+  }
+
+  cfg->in.index = input;
+  ret = ioctl(cfg->fd, VIDIOC_ENUMINPUT, &cfg->in);
+  if (ret) {
+    fprintf(stderr, "VIDIOC_ENUMINPUT failed");
     return;
   }
 
