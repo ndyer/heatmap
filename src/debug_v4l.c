@@ -36,7 +36,7 @@
 #endif
 
 #define DEBUG_V4L_ROOT_DIR		"/dev"
-#define V4L_DEV_PREFIX	     	"video"
+#define V4L_DEV_PREFIX	     	"v4l-touch"
 
 static int
 debug_v4l_open_device(char *dev)
@@ -69,7 +69,7 @@ static int
 debug_v4l_set_dev_input(int fd, int index)
 {
   if (ioctl(fd, VIDIOC_S_INPUT, &index) == -1) {
-    fprintf(stderr, "Error: Failed to set device input\n");
+    fprintf(stderr, "Error: Failed to set device input %d\n", index);
     return -1;
   }
   return 0;
@@ -151,7 +151,7 @@ print_debug_v4l_devices()
   }
 }
 
-void
+int
 hm_v4l_init(struct hm_cfg *cfg, int input)
 {
   int ret;
@@ -160,7 +160,7 @@ hm_v4l_init(struct hm_cfg *cfg, int input)
   cfg->fd = debug_v4l_open_device(cfg->path);
   if (!cfg->fd) {
     fprintf(stderr, "Error: Failed to open device\n");
-    return;
+    return -1;
   }
 
   debug_v4l_get_cap(cfg->fd, &cfg->cap);
@@ -169,14 +169,14 @@ hm_v4l_init(struct hm_cfg *cfg, int input)
   ret = debug_v4l_set_dev_input(cfg->fd, input);
   if (ret) {
     fprintf(stderr, "input\n");
-    return;
+    return -1;
   }
 
   cfg->in.index = input;
   ret = ioctl(cfg->fd, VIDIOC_ENUMINPUT, &cfg->in);
   if (ret) {
     fprintf(stderr, "VIDIOC_ENUMINPUT failed");
-    return;
+    return -1;
   }
 
   /* request buffers */
@@ -185,9 +185,9 @@ hm_v4l_init(struct hm_cfg *cfg, int input)
   bufrequest.memory = V4L2_MEMORY_MMAP;
   bufrequest.count = 1;
 
-  if (ioctl(cfg->fd, VIDIOC_REQBUFS, &bufrequest) < 0){
-    fprintf(stderr, "REQBUF\n");
-    return;
+  if (ioctl(cfg->fd, VIDIOC_REQBUFS, &bufrequest) < 0) {
+    fprintf(stderr, "Error from VIDIOC_REQBUFS: %s\n", strerror(errno));
+    return -1;
   }
 
   memset(&cfg->bufferinfo, 0, sizeof(cfg->bufferinfo));
@@ -198,7 +198,7 @@ hm_v4l_init(struct hm_cfg *cfg, int input)
 
   if(ioctl(cfg->fd, VIDIOC_QUERYBUF, &cfg->bufferinfo) == -1){
     fprintf(stderr, "Query buf\n");
-    return;
+    return -1;
   }
 
   /* alloc buffers */
@@ -213,7 +213,7 @@ hm_v4l_init(struct hm_cfg *cfg, int input)
 
   if(cfg->buffer == MAP_FAILED){
     fprintf(stderr, "Error: Memory map failed\n");
-    return;
+    return -1;
   }
 
   memset(cfg->buffer, 0, cfg->bufferinfo.length);
@@ -222,7 +222,7 @@ hm_v4l_init(struct hm_cfg *cfg, int input)
   ret = debug_v4l_get_dev_fmt(cfg);
   if (ret) {
     fprintf(stderr, "Error: Query format failed\n");
-    return;
+    return -1;
   }
 
   cfg->pixfmt = cfg->fmt.fmt.pix.pixelformat;
@@ -237,8 +237,10 @@ hm_v4l_init(struct hm_cfg *cfg, int input)
   int type = cfg->bufferinfo.type;
   if(ioctl(cfg->fd, VIDIOC_STREAMON, &type) < 0){
     fprintf(stderr, "Error: Failed to activate streaming\n");
-    return;
+    return -1;
   }
+
+  return 0;
 }
 
 int

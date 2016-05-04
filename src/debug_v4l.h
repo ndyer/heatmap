@@ -47,7 +47,7 @@ struct hm_cfg {
 
 /* debug_v4l */
 void print_debug_v4l_devices();
-void hm_v4l_init(struct hm_cfg *cfg, int input);
+int hm_v4l_init(struct hm_cfg *cfg, int input);
 int hm_v4l_get_frame(struct hm_cfg *cfg);
 void hm_v4l_close(struct hm_cfg *cfg);
 int hm_v4l_get_value(struct hm_cfg *cfg, size_t index);
