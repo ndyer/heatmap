@@ -146,7 +146,7 @@ main(int argc, char *argv[])
             break;
         case 'd':
             dev = atoi(optarg);
-            snprintf(cfg.path, sizeof(cfg.path), "/dev/video%d", dev);
+            snprintf(cfg.path, sizeof(cfg.path), "/dev/v4l-touch%d", dev);
             break;
         case 'i':
             input = atoi(optarg);
