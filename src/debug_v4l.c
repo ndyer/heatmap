@@ -24,8 +24,8 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 #include <fcntl.h>
-#include <stropts.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <stdint.h>
