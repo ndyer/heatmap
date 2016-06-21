@@ -31,8 +31,20 @@
 #include <stdint.h>
 #include <errno.h>
 
-#ifndef V4L2_PIX_FMT_YS16
-#define V4L2_PIX_FMT_YS16    v4l2_fourcc('Y', 'S', '1', '6') /* signed 16-bit Greyscale */
+#ifndef V4L2_TCH_FMT_DELTA_TD16
+#define V4L2_TCH_FMT_DELTA_TD16 v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
+#endif
+
+#ifndef V4L2_TCH_FMT_DELTA_TD08
+#define V4L2_TCH_FMT_DELTA_TD08 v4l2_fourcc('T', 'D', '0', '8') /* 8-bit signed deltas */
+#endif
+
+#ifndef V4L2_TCH_FMT_TU16
+#define V4L2_TCH_FMT_TU16 v4l2_fourcc('T', 'U', '1', '6') /* 16-bit unsigned touch data */
+#endif
+
+#ifndef V4L2_TCH_FMT_TU08
+#define V4L2_TCH_FMT_TU08 v4l2_fourcc('T', 'U', '0', '8') /* 8-bit unsigned touch data */
 #endif
 
 #define DEBUG_V4L_ROOT_DIR		"/dev"
@@ -282,16 +294,28 @@ hm_v4l_get_value(struct hm_cfg *cfg, size_t index)
     int val;
     uint16_t *uiPtr;
     int16_t *iPtr;
+    uint8_t *usPtr;
+    int8_t *sPtr;
 
     switch (cfg->fmt.fmt.pix.pixelformat) {
-        case V4L2_PIX_FMT_Y16:
+        case V4L2_TCH_FMT_DELTA_TD16:
             uiPtr = cfg->buffer;
             val = uiPtr[index];
             break;
 
-        case V4L2_PIX_FMT_YS16:
+        case V4L2_TCH_FMT_TU16:
             iPtr = cfg->buffer;
             val = iPtr[index];
+            break;
+
+        case V4L2_TCH_FMT_DELTA_TD08:
+            sPtr = cfg->buffer;
+            val = sPtr[index];
+            break;
+
+        case V4L2_TCH_FMT_TU08:
+            usPtr = cfg->buffer;
+            val = usPtr[index];
             break;
 
         default:
