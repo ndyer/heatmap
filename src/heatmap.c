@@ -101,7 +101,7 @@ int
 main(int argc, char *argv[])
 {
     int debug = 1;
-    int dev = 0;
+    int devno = 0;
     int input = 0;
     int ch;
 
@@ -145,8 +145,7 @@ main(int argc, char *argv[])
             debug++;
             break;
         case 'd':
-            dev = atoi(optarg);
-            snprintf(cfg.path, sizeof(cfg.path), "/dev/v4l-touch%d", dev);
+            devno = atoi(optarg);
             break;
         case 'i':
             input = atoi(optarg);
@@ -201,7 +200,11 @@ main(int argc, char *argv[])
     cfg.auto_max = (cfg.max == INT_MIN);
 
     log_init(debug, __progname);
-    hm_v4l_init(&cfg, input);
+
+    snprintf(cfg.path, sizeof(cfg.path), "/dev/v4l-touch%d", devno);
+
+    if (hm_v4l_init(&cfg, input) < 0)
+        fatal("heatmap", "unable to init V4L");;
 
     /* Setup signals */
     struct sigaction actterm;
