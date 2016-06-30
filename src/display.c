@@ -114,7 +114,8 @@ hm_display_data(struct hm_cfg *cfg, size_t len)
             max = MAXCOLOR;
 
         int val = hm_v4l_get_value(cfg, i);
-        ssize_t gray = (val - cfg->min) * max / (cfg->max - cfg->min);
+        int range = cfg->max - cfg->min;
+        ssize_t gray = (range > 0) ? (val - cfg->min) * max / range : 0;
         if (gray >= max) gray = max - 1;
         if (gray < 0) gray = 0;
         attrset(COLOR_PAIR(gray));
