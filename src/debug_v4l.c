@@ -47,10 +47,6 @@
 #define V4L2_TCH_FMT_TU08 v4l2_fourcc('T', 'U', '0', '8') /* 8-bit unsigned touch data */
 #endif
 
-#ifndef V4L2_BUF_TYPE_TOUCH_CAPTURE
-#define V4L2_BUF_TYPE_TOUCH_CAPTURE 13
-#endif
-
 #define DEBUG_V4L_ROOT_DIR		"/dev"
 #define V4L_DEV_PREFIX	     	"v4l-touch"
 
@@ -133,7 +129,7 @@ debug_v4l_print_dev_info(char *path)
 static int
 debug_v4l_get_dev_fmt(struct hm_cfg *cfg)
 {
-  cfg->fmt.type = V4L2_BUF_TYPE_TOUCH_CAPTURE;
+  cfg->fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
   int ret = ioctl(cfg->fd, VIDIOC_G_FMT, &cfg->fmt);
   if (ret == -1) {
@@ -197,7 +193,7 @@ hm_v4l_init(struct hm_cfg *cfg, int input)
 
   /* request buffers */
   struct v4l2_requestbuffers bufrequest = { 0 };
-  bufrequest.type = V4L2_BUF_TYPE_TOUCH_CAPTURE;
+  bufrequest.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   bufrequest.memory = V4L2_MEMORY_MMAP;
   bufrequest.count = 1;
 
@@ -208,7 +204,7 @@ hm_v4l_init(struct hm_cfg *cfg, int input)
 
   memset(&cfg->bufferinfo, 0, sizeof(cfg->bufferinfo));
 
-  cfg->bufferinfo.type = V4L2_BUF_TYPE_TOUCH_CAPTURE;
+  cfg->bufferinfo.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   cfg->bufferinfo.memory = V4L2_MEMORY_MMAP;
   cfg->bufferinfo.index = 0;
 
